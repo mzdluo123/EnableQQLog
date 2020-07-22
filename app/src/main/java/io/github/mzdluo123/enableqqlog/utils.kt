@@ -1,10 +1,9 @@
 package io.github.mzdluo123.enableqqlog
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.GsonBuilder
+import com.google.gson.*
 import de.robv.android.xposed.XposedBridge
 import java.lang.reflect.Field
+import java.lang.reflect.Type
 
 inline fun l(msg: String) {
     XposedBridge.log("[EnableQQLog] $msg")
@@ -29,8 +28,54 @@ val gson by lazy {
             }
             return false
         }
-
     })
+    val serial = object : JsonSerializer<Any> {
+        override fun serialize(
+            src: Any?,
+            typeOfSrc: Type?,
+            context: JsonSerializationContext?
+        ): JsonElement? {
+            val field = src!!::class.java.getField("value")
+            when (field.type) {
+                Number::class.java -> {
+                    return JsonPrimitive(field.get(src) as Number)
+                }
+                Boolean::class.java -> {
+                    return JsonPrimitive(field.getBoolean(src))
+                }
+                Byte::class.java -> {
+                    return JsonPrimitive(field.getByte(src))
+                }
+                String::class.java -> {
+                    return JsonPrimitive(field.get(src) as String)
+                }
+                ByteArray::class.java -> {
+                    val bytes = field.get(src) as ByteArray
+                    val array = JsonArray(bytes.size)
+                    bytes.forEach { array.add(it) }
+                    return array
+                }
+            }
+            return null
+        }
+
+    }
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBBytesField"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBBoolField"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBDoubleField"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBEnumField"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBFixed32Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBFixed64Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBInt32Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBInt64Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBSFixed32Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBSFixed64Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBSInt32Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBSInt64Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBStringField"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBUInt32Field"), serial)
+    builder.registerTypeAdapter(Class.forName("com.tencent.mobileqq.pb.PBUInt64Field"), serial)
+
 
     builder.create()
 }

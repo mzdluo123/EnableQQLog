@@ -4,10 +4,15 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 class Main : IXposedHookLoadPackage {
+    companion object {
+        public lateinit var classLoader: ClassLoader
+    }
+
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != "com.tencent.tim" && lpparam.packageName != "com.tencent.mobileqq") {
             return
         }
+        classLoader = lpparam.classLoader
         val QLog = lpparam.classLoader.loadClass("com.tencent.qphone.base.util.QLog")
         QLog.getDeclaredField("UIN_REPORTLOG_LEVEL").also {
             it.isAccessible = true

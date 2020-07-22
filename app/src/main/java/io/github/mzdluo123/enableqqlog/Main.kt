@@ -16,5 +16,6 @@ class Main : IXposedHookLoadPackage {
         l("hook 打印log成功")
         UniPackage().handleLoadPackage(lpparam)
         ServiceHook().handleLoadPackage(lpparam)
+        MessageMicroHook().handleLoadPackage(lpparam)
     }
 }

@@ -13,10 +13,10 @@ class LogUpload {
         }
 
         private val client = OkHttpClient()
-        private fun upload(string: String) {
+        private fun upload(string: String, url: String) {
             if (!BuildConfig.ENABLE) return
             client.newCall(
-                Request.Builder().url(BuildConfig.URL).method("POST", string.toRequestBody())
+                Request.Builder().url(url).method("POST", string.toRequestBody())
                     .build()
             ).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
@@ -30,8 +30,19 @@ class LogUpload {
             })
         }
 
-        public fun upload(dire: DIRECTION, type: String, content: Any?) {
-            upload(gson.toJson(DataPack(type, dire.value, content)))
+
+        enum class PacketType(
+            val url: String
+        ) {
+            MSG_MICRO(BuildConfig.URL_MSG_MICRO),
+            UNI(BuildConfig.URL_UNI),
+            SVC(BuildConfig.URL_SVC)
+        }
+
+        fun upload(dire: DIRECTION, type: String, content: Any?, packetType: PacketType) {
+            upload(
+                gson.toJson(DataPack(type, dire.value, content)), packetType.url
+            )
         }
     }
 }

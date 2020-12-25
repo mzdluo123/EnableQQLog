@@ -4,6 +4,7 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import io.github.mzdluo123.enableqqlog.LogUpload.Companion.PacketType.UNI
 
 class UniPackage : IXposedHookLoadPackage {
 
@@ -18,7 +19,7 @@ class UniPackage : IXposedHookLoadPackage {
                 val data = pack.get(param.thisObject)
                 val json = gson.toJson(data)
                 l("Uni-> $json")
-                LogUpload.upload(LogUpload.Companion.DIRECTION.OUT, "Uni", data)
+                LogUpload.upload(LogUpload.Companion.DIRECTION.OUT, "Uni", data, UNI)
 
             }
         })
@@ -28,7 +29,7 @@ class UniPackage : IXposedHookLoadPackage {
                 val data = pack.get(param.thisObject)
                 val json = gson.toJson(data)
                 l("Uni<- $json")
-                LogUpload.upload(LogUpload.Companion.DIRECTION.IN, "Uni", data)
+                LogUpload.upload(LogUpload.Companion.DIRECTION.IN, "Uni", data, UNI)
             }
         }
         XposedHelpers.findAndHookMethod(uniClass, "decode", ByteArray::class.java, decodeHook)

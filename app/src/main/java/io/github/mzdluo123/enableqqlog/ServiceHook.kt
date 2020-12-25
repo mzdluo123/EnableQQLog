@@ -8,6 +8,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import io.github.mzdluo123.enableqqlog.LogUpload.Companion.PacketType.SVC
 
 class ServiceHook : IXposedHookLoadPackage {
     private val gson = Gson()
@@ -25,7 +26,7 @@ class ServiceHook : IXposedHookLoadPackage {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     val data = gson.toJson(param.thisObject)
                     l("Svc-> $data")
-                    LogUpload.upload(LogUpload.Companion.DIRECTION.OUT, "Svc", param.thisObject)
+                    LogUpload.upload(LogUpload.Companion.DIRECTION.OUT, "Svc", param.thisObject, SVC)
                 }
             })
 
@@ -33,7 +34,7 @@ class ServiceHook : IXposedHookLoadPackage {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val data = gson.toJson(param.thisObject)
                 l("Svc<- $data")
-                LogUpload.upload(LogUpload.Companion.DIRECTION.IN, "Svc", param.thisObject)
+                LogUpload.upload(LogUpload.Companion.DIRECTION.IN, "Svc", param.thisObject, SVC)
             }
         }
         val readMethod = serviceClass.getDeclaredMethod("readFromParcel", Parcel::class.java)

@@ -7,13 +7,15 @@ android {
 
     defaultConfig {
         applicationId "io.github.mzdluo123.enableqqlog"
-        minSdkVersion 24
+        minSdkVersion 22
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "URL", '"http://192.168.1.231:8081"')
-        buildConfigField("boolean","ENABLE","true")
+        buildConfigField("String", "URL_MSG_MICRO", '"http://192.168.31.74:20810"')
+        buildConfigField("String", "URL_SVC", '"http://192.168.31.74:20811"')
+        buildConfigField("String", "URL_UNI", '"http://192.168.31.74:20812"')
+        buildConfigField("boolean", "ENABLE", "true")
     }
 
     buildTypes {

@@ -26,7 +26,7 @@ class ServiceHook : IXposedHookLoadPackage {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     val data = gson.toJson(param.thisObject)
                     l("Svc-> $data")
-                    LogUpload.upload(LogUpload.Companion.DIRECTION.OUT, "Svc", param.thisObject, SVC)
+                    LogUpload.upload(Direction.OUT, "Svc", param.thisObject, SVC)
                 }
             })
 
@@ -34,7 +34,7 @@ class ServiceHook : IXposedHookLoadPackage {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val data = gson.toJson(param.thisObject)
                 l("Svc<- $data")
-                LogUpload.upload(LogUpload.Companion.DIRECTION.IN, "Svc", param.thisObject, SVC)
+                LogUpload.upload(Direction.IN, "Svc", param.thisObject, SVC)
             }
         }
         val readMethod = serviceClass.getDeclaredMethod("readFromParcel", Parcel::class.java)

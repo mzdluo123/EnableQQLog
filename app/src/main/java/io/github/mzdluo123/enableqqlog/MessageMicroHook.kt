@@ -15,9 +15,9 @@ class MessageMicroHook : IXposedHookLoadPackage {
                 val content = gson.toJson(param.thisObject)
                 l("MsgMicro (${param.thisObject.javaClass.name}) $content")
                 LogUpload.upload(
-                    LogUpload.Companion.DIRECTION.IN,
+                    Direction.IN,
                     "MsgMicro (${param.thisObject.javaClass.name})",
-                    content,
+                    param.thisObject,
                     MSG_MICRO
                 )
             }

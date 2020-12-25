@@ -5,7 +5,7 @@ import de.robv.android.xposed.XposedBridge
 import java.lang.reflect.Field
 import java.lang.reflect.Type
 
-inline fun l(msg: String) {
+fun l(msg: String) {
     XposedBridge.log("[EnableQQLog] $msg")
 }
 

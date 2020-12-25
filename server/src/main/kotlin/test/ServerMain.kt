@@ -1,5 +1,8 @@
 package test
 
+import com.google.gson.Gson
+import io.github.mzdluo123.enableqqlog.DataPack
+import io.github.mzdluo123.enableqqlog.prettyString
 import io.ktor.application.*
 import io.ktor.request.*
 import io.ktor.routing.*
@@ -16,16 +19,7 @@ object MsgMicroServer {
                 host = "0.0.0.0"
                 port = 20810
             }
-            val lock = Mutex()
-            module {
-                routing {
-                    post("/") {
-                        lock.withLock {
-                            println(call.receive<String>())
-                        }
-                    }
-                }
-            }
+            module(Application::module)
         }).start(true)
     }
 }
@@ -38,16 +32,7 @@ object SvcServer {
                 host = "0.0.0.0"
                 port = 20811
             }
-            val lock = Mutex()
-            module {
-                routing {
-                    post("/") {
-                        lock.withLock {
-                            println(call.receive<String>())
-                        }
-                    }
-                }
-            }
+            module(Application::module)
         }).start(true)
     }
 }
@@ -60,16 +45,32 @@ object UniServer {
                 host = "0.0.0.0"
                 port = 20812
             }
-            val lock = Mutex()
-            module {
-                routing {
-                    post("/") {
-                        lock.withLock {
-                            println(call.receive<String>())
-                        }
-                    }
-                }
-            }
+            module(Application::module)
         }).start(true)
     }
+}
+
+
+private val lock = Mutex()
+private fun Application.module() {
+    routing {
+        post("/") {
+            lock.withLock {
+                println(call.receivePack().prettyPrint())
+            }
+        }
+    }
+}
+
+private fun DataPack.prettyPrint(): String = buildString {
+    append(direction.prettyString())
+    append("  ")
+    append(type)
+    appendLine()
+    append(content)
+    appendLine()
+}
+
+private suspend fun ApplicationCall.receivePack(): DataPack {
+    return receive<String>().let { Gson().fromJson(it, DataPack::class.java) }
 }

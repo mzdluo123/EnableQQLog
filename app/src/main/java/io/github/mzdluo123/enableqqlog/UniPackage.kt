@@ -19,7 +19,7 @@ class UniPackage : IXposedHookLoadPackage {
                 val data = pack.get(param.thisObject)
                 val json = gson.toJson(data)
                 l("Uni-> $json")
-                LogUpload.upload(LogUpload.Companion.DIRECTION.OUT, "Uni", data, UNI)
+                LogUpload.upload(Direction.OUT, "Uni", data, UNI)
 
             }
         })
@@ -29,7 +29,7 @@ class UniPackage : IXposedHookLoadPackage {
                 val data = pack.get(param.thisObject)
                 val json = gson.toJson(data)
                 l("Uni<- $json")
-                LogUpload.upload(LogUpload.Companion.DIRECTION.IN, "Uni", data, UNI)
+                LogUpload.upload(Direction.IN, "Uni", data, UNI)
             }
         }
         XposedHelpers.findAndHookMethod(uniClass, "decode", ByteArray::class.java, decodeHook)

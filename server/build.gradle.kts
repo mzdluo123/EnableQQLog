@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
     java
 }
 
@@ -11,6 +12,7 @@ dependencies {
     api("com.google.code.gson:gson:2.8.6")
     api("io.ktor:ktor-server-netty:$ktorVersion")
     api("org.slf4j:slf4j-simple:1.7.30")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.0.1")
 }
 
 java {
@@ -23,14 +25,16 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java) {
         jvmTarget = "1.8"
         targetCompatibility = "1.8"
         freeCompilerArgs = freeCompilerArgs + "-Xjvm-target=1.8"
+        freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=all"
     }
 }
 
-val miraiVersion = "2.0-M2-dev-7"
+val miraiVersion = "2.0-M2-dev-8"
 
 dependencies {
 
 
     api("net.mamoe:mirai-core-api:$miraiVersion")
     api("net.mamoe:mirai-core-utils:$miraiVersion")
+    api("net.mamoe:mirai-core:$miraiVersion")
 }

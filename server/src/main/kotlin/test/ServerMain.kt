@@ -1,10 +1,7 @@
 package test
 
 import com.google.gson.Gson
-import io.github.mzdluo123.enableqqlog.DataPack
-import io.github.mzdluo123.enableqqlog.OicqHookOnMakePacket
-import io.github.mzdluo123.enableqqlog.PacketType
-import io.github.mzdluo123.enableqqlog.prettyString
+import io.github.mzdluo123.enableqqlog.*
 import io.ktor.application.*
 import io.ktor.request.*
 import io.ktor.routing.*
@@ -12,7 +9,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import net.mamoe.mirai.utils.MiraiLogger
 import net.mamoe.mirai.utils.toUHexString
 
 object MsgMicroServer {
@@ -66,37 +62,49 @@ private fun Application.module() {
     routing {
         post("/") {
             lock.withLock {
-                println(call.receivePack().prettyPrint())
+                call.receivePack().prettyPrint()?.let(::println)
             }
         }
     }
 }
 
-private fun DataPack.prettyPrint(): String = buildString {
+private fun DataPack.prettyPrint(): String? = buildString {
     append(direction.prettyString())
     append("  ")
     append(type)
     appendLine()
-    append(contentPrint())
+    val content = contentPrint() ?: return null
+    append(content)
     appendLine()
 }
 
-private val logger = MiraiLogger.create("main")
 
-private fun DataPack.contentPrint(): String = buildString {
+class UniPacket(
+    val cPacketType: Int,
+    val iMessageType: Int,
+    val iRequestId: Int,
+    val iTimeout: Int,
+    val iVersion: Int,
+    val sBuffer: ByteArray,
+    val sFuncName: String,
+    val sServantName: String,
+)
+
+class SvcPacket(
+    val serviceCmd: String,
+    val wupBuffer: ByteArray,
+)
+
+
+@Suppress("SpellCheckingInspection")
+internal val IgnoredPackets = arrayOf(
+    "socketnetflow",
+    "QQService.CliLogSvc.MainServantObj",
+)
+
+private fun DataPack.contentPrint(): String? = buildString {
     when (packetType) {
         PacketType.UNI -> {
-            class UniPacket(
-                val cPacketType: Int,
-                val iMessageType: Int,
-                val iRequestId: Int,
-                val iTimeout: Int,
-                val iVersion: Int,
-                val sBuffer: ByteArray,
-                val sFuncName: String,
-                val sServantName: String,
-            )
-
             /*
             {cPacketType=0.0, iMessageType=0.0, iRequestId=0.0, iTimeout=0.0, iVersion=3.0,
              sBuffer=[8.0, 0.0, 1.0, 6.0, 8.0, 80.0, 117.0, 115.0, 104.0, 82.0, 101.0, 115.0, 112.0, 29.0, 0.0, 0.0, 9.0, 10.0, 16.0, 2.0, 34.0, 108.0, -116.0, -122.0, -63.0, 11.0],
@@ -105,23 +113,23 @@ private fun DataPack.contentPrint(): String = buildString {
             @Suppress("UNCHECKED_CAST")
             val content = Gson().fromJson(contentJson, UniPacket::class.java)
 
-            logger.info("svt=${content.sServantName}  func=${content.sFuncName}")
-            logger.verbose(content.sBuffer.toUHexString())
+            if (IgnoredPackets.contains(content.sServantName)) return null
+            if (IgnoredPackets.contains(content.sFuncName)) return null
+
+            appendLine(Color.LIGHT_GREEN + "svt=${content.sServantName}  func=${content.sFuncName}" + Color.RESET)
+            appendLine(content.sBuffer.toUHexString())
         }
 
         PacketType.OICQ -> {
             val data = Gson().fromJson(contentJson, OicqHookOnMakePacket::class.java)
 
-            logger.info(data.request.toString())
-            println(data.data.toUHexString())
+            if (IgnoredPackets.contains(data.request.svcCmd)) return null
+
+            appendLine(Color.LIGHT_GREEN + data.request.toString() + Color.RESET)
+            appendLine(data.data.toUHexString())
         }
 
         PacketType.SVC -> {
-            class SvcPacket(
-                val serviceCmd: String,
-                val wupBuffer: ByteArray,
-            )
-
             val svcPacket = Gson().fromJson(contentJson, SvcPacket::class.java)
 
             // {"appId":537066758,
@@ -141,13 +149,15 @@ private fun DataPack.contentPrint(): String = buildString {
             //"uin":"1994701021","uinType":0,
             //"wupBuffer":[0,0,1,30,16,3,44,60,76,86,34,81,81,83,101,114,118,105,99,101,46,67,108,105,76,111,103,83,118,99,46,77,97,105,110,83,101,114,118,97,110,116,79,98,106,102,9,85,112,108,111,97,100,82,101,113,125,0,1,0,-36,8,0,1,6,4,68,97,116,97,29,0,1,0,-50,10,8,0,1,6,7,100,99,48,52,50,55,50,25,0,1,13,0,1,0,-75,49,54,48,56,57,55,56,50,49,51,124,53,51,55,48,54,54,55,53,56,124,97,110,100,114,111,105,100,124,49,57,57,52,55,48,49,48,50,49,124,110,101,119,95,114,101,103,95,56,48,53,124,108,111,103,95,112,97,103,101,124,112,97,103,101,95,101,120,112,124,124,49,124,124,56,54,53,49,54,54,48,50,50,56,56,48,48,56,53,124,124,79,80,80,79,124,80,67,82,84,48,48,124,78,79,78,69,124,53,46,49,46,49,124,63,59,76,77,89,52,57,73,59,97,110,100,114,111,105,100,95,120,56,54,45,117,115,101,114,32,53,46,49,46,49,32,76,77,89,52,57,73,32,56,46,51,46,49,57,32,114,101,108,101,97,115,101,45,107,101,121,115,124,124,124,124,124,124,124,124,124,22,0,44,11,-116,-104,12,-88,12]}
 
-            logger.info("cmd=${svcPacket.serviceCmd}")
-            println(svcPacket.wupBuffer.toUHexString())
+            if (IgnoredPackets.contains(svcPacket.serviceCmd)) return null
+
+            appendLine(Color.LIGHT_GREEN + "cmd=${svcPacket.serviceCmd}" + Color.RESET)
+            appendLine(svcPacket.wupBuffer.toUHexString())
         }
 
         PacketType.LOG -> {
             val content = Gson().fromJson(contentJson, String::class.java)
-            println(content)
+            appendLine(content)
         }
         else -> append(contentJson)
     }

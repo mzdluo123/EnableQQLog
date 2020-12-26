@@ -12,9 +12,12 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "URL_MSG_MICRO", '"http://192.168.31.74:20810"')
-        buildConfigField("String", "URL_SVC", '"http://192.168.31.74:20811"')
-        buildConfigField("String", "URL_UNI", '"http://192.168.31.74:20812"')
+        def ip = "192.168.31.74"
+        buildConfigField("String", "URL_MSG_MICRO", "\"http://$ip:20810\"")
+        buildConfigField("String", "URL_SVC", "\"http://$ip:20811\"")
+        buildConfigField("String", "URL_UNI", "\"http://$ip:20812\"")
+        buildConfigField("String", "URL_OICQ", "\"http://$ip:20813\"")
+        buildConfigField("String", "URL_LOG", "\"http://$ip:20814\"")
         buildConfigField("boolean", "ENABLE", "true")
     }
 

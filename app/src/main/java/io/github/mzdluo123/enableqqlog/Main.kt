@@ -5,7 +5,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 class Main : IXposedHookLoadPackage {
     companion object {
-        public lateinit var classLoader: ClassLoader
+        lateinit var classLoader: ClassLoader
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
@@ -22,5 +22,6 @@ class Main : IXposedHookLoadPackage {
         UniPackage().handleLoadPackage(lpparam)
         ServiceHook().handleLoadPackage(lpparam)
         MessageMicroHook().handleLoadPackage(lpparam)
+        OicqRequestHook().handleLoadPackage(lpparam)
     }
 }

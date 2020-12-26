@@ -25,19 +25,25 @@ class LogUpload {
             })
         }
 
+        private val PacketType.url: String
+            get() = when (this) {
+                PacketType.UNI -> BuildConfig.URL_UNI
+                PacketType.MSG_MICRO -> BuildConfig.URL_MSG_MICRO
+                PacketType.SVC -> BuildConfig.URL_SVC
+                PacketType.OICQ -> BuildConfig.URL_OICQ
+                PacketType.LOG -> BuildConfig.URL_LOG
+            }
 
-        enum class PacketType(
-            val url: String
-        ) {
-            MSG_MICRO(BuildConfig.URL_MSG_MICRO),
-            UNI(BuildConfig.URL_UNI),
-            SVC(BuildConfig.URL_SVC)
-        }
 
         fun upload(dire: Direction, type: String, content: Any?, packetType: PacketType) {
             upload(
-                gson.toJson(DataPack(type, dire, content)), packetType.url
+                gson.toJson(DataPack(type, dire, gson.toJson(content), packetType)), packetType.url
             )
         }
     }
+}
+
+
+fun pushLog(content: String) {
+    LogUpload.upload(Direction.OUT, "LOG", content, PacketType.LOG)
 }

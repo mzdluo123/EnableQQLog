@@ -4,7 +4,6 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-import io.github.mzdluo123.enableqqlog.LogUpload.Companion.PacketType.MSG_MICRO
 
 class MessageMicroHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
@@ -18,7 +17,7 @@ class MessageMicroHook : IXposedHookLoadPackage {
                     Direction.IN,
                     "MsgMicro (${param.thisObject.javaClass.name})",
                     param.thisObject,
-                    MSG_MICRO
+                    PacketType.MSG_MICRO
                 )
             }
 

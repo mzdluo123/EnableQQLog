@@ -9,7 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import net.mamoe.mirai.utils.toUHexString
+import net.mamoe.mirai.utils.*
 
 object MsgMicroServer {
     @JvmStatic
@@ -127,6 +127,8 @@ private fun DataPack.contentPrint(): String? = buildString {
 
             appendLine(Color.LIGHT_GREEN + data.request.toString() + Color.RESET)
             appendLine(data.data.toUHexString())
+            appendLine()
+            appendLine(data.data.toReadPacket().withUse { _readTLVMap() }.smartToString())
         }
 
         PacketType.SVC -> {
@@ -165,4 +167,18 @@ private fun DataPack.contentPrint(): String? = buildString {
 
 private suspend fun ApplicationCall.receivePack(): DataPack {
     return receive<String>().let { Gson().fromJson(it, DataPack::class.java) }
+}
+
+private val Char.isHumanReadable get() = this in '0'..'9' || this in 'a'..'z' || this in 'A'..'Z' || this in """ <>?,.";':/\][{}~!@#$%^&*()_+-=`""" || this in "\n\r"
+
+private fun TlvMap.smartToString(): String {
+    fun ByteArray.valueToString(): String {
+        val str = this.encodeToString()
+        return if (str.all { it.isHumanReadable }) str
+        else this.toUHexString()
+    }
+
+    return entries.joinToString("\n") { (key, value) ->
+        "0x" + key.toShort().toUHexString("") + " = " + value.valueToString()
+    }
 }

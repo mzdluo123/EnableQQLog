@@ -1,7 +1,5 @@
 package io.github.mzdluo123.enableqqlog
 
-import net.mamoe.mirai.utils.toUHexString
-
 enum class Direction(val value: Int) {
     IN(1),
     OUT(2)

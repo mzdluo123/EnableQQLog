@@ -20,38 +20,45 @@ class OicqRequestHook : IXposedHookLoadPackage {
         pushLog(clazz.methods.joinToString("\n"))
 
         val peekData = clazz.getMethod("c").apply { isAccessible = true }
-        //     // $FF: renamed from: a (java.lang.String, boolean, oicq.wlogin_sdk.request.WUserSigInfo) int
-        XposedHelpers.findAndHookMethod(
-            clazz,
-            "a",
-            String::class.java,
-            Boolean::class.javaPrimitiveType,
-            "oicq.wlogin_sdk.request.WUserSigInfo",
 
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    pushLog("hook ok")
-                    kotlin.runCatching {
+        //// $FF: renamed from: b (byte[], int, int) byte[]
+        //byte[] method_60801(byte[] var1, int var2, int var3) {
 
-                        val obj = param.thisObject
 
-                        val data = peekData.invoke(obj) as ByteArray
-                        LogUpload.upload(
-                            Direction.OUT, "Oicq", OicqHookOnMakePacket(
-                                OicqRequest(
-                                    cmd = getIntField(obj, "t"),
-                                    subCmd = getIntField(obj, "u"),
-                                    svcCmd = getObjectField(obj, "v") as String,
-                                ), data
-                            ), PacketType.OICQ
-                        )
-                    }.onFailure {
-                        pushLog(it.stackTraceToString())
-                    }
-                    pushLog("upload ok")
+        val hook = object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                kotlin.runCatching {
+                    val obj = param.thisObject
+
+                    val data = (param.args[0] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
+                    LogUpload.upload(
+                        Direction.OUT, "Oicq", OicqHookOnMakePacket(
+                            OicqRequest(
+                                cmd = getIntField(obj, "t"),
+                                subCmd = getIntField(obj, "u"),
+                                svcCmd = getObjectField(obj, "v") as String,
+                            ), data
+                        ), PacketType.OICQ
+                    )
+                }.onFailure {
+                    pushLog(it.stackTraceToString())
                 }
             }
-        )
+        }
+
+        clazz.methods.map { it.name }.forEach { methodName ->
+            XposedHelpers.findAndHookMethod(
+                clazz,
+
+                methodName,
+                ByteArray::class.java,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+
+                hook
+            )
+        }
+
 
         /*
         pushLog(

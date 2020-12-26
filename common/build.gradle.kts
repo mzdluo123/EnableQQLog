@@ -1,12 +1,8 @@
 plugins {
     kotlin("jvm")
+    java
 }
-
-val miraiVersion = "2.0-M2-dev-5"
-
-dependencies {
-
-
-    api("net.mamoe:mirai-core-api:$miraiVersion")
-    api("net.mamoe:mirai-core-utils:$miraiVersion")
+java {
+    targetCompatibility = JavaVersion.VERSION_1_6
+    sourceCompatibility = JavaVersion.VERSION_1_6
 }

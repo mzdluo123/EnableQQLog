@@ -10,6 +10,16 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.mamoe.mirai.utils.*
+import kotlin.concurrent.thread
+
+object UniOicqSvcServer {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        thread { UniServer.main(args) }
+        thread { OicqServer.main(args) }
+        thread { SvcServer.main(args) }
+    }
+}
 
 object MsgMicroServer {
     @JvmStatic
@@ -102,17 +112,22 @@ internal val IgnoredPackets = arrayOf(
     "socketnetflow",
     "CliLogSvc.UploadReq",
     "QQService.CliLogSvc.MainServantObj",
+    "QQService.ConfigPushSvc.MainServant",
     "KQQ.ConfigService.ConfigServantObj",
     "App_reportRDM",
     "RedTouchSvc.ClientReport",
     "MobileReport.UserActionReport",
+    "JsApiSvr.webview.whitelist",
+    "ConfigServantObj",
+    "cmd_getServerConfig",
+    "cmd_RegisterMsfService"
 )
 
 internal val IgnoredPacketFilters: Array<(String) -> Boolean> = arrayOf(
     { it.contains("qzone", ignoreCase = true) }
 )
 
-private fun isIgnored(s: String): Boolean = IgnoredPackets.contains(s) || IgnoredPacketFilters.any { it.invoke(s) }
+private fun isIgnored(s: String?): Boolean = s == null || IgnoredPackets.contains(s) || IgnoredPacketFilters.any { it.invoke(s) }
 
 private fun DataPack.contentPrint(): String? = buildString {
     when (packetType) {

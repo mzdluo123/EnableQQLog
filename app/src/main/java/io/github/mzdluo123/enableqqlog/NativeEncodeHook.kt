@@ -135,7 +135,7 @@ class NativeEncodeHook : IXposedHookLoadPackage {
                         )
                         LogUpload.upload(
                             Direction.OUT,
-                            "Codec",
+                            "Codec Send C",
                             CodecNativeEncodePacket(
                                 param.args[0].cast(),
                                 param.args[1].cast(),
@@ -194,7 +194,7 @@ class NativeEncodeHook : IXposedHookLoadPackage {
 
                         LogUpload.upload(
                             Direction.IN,
-                            "Codec",
+                            "Codec Recv A",
                             json,
                             PacketType.CODEC_ENCODE
                         )

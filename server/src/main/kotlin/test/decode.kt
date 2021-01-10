@@ -31,14 +31,22 @@ fun Application.module() {
     }
 }
 
+private val logger = MiraiLogger.create("")
+
 private fun DataPack.prettyPrint(): String? = buildString {
-    append(direction.prettyString())
-    append("  ")
-    append(type)
-    appendLine()
-    val content = contentPrint() ?: return null
-    append(content.trim())
-    appendLine()
+    if (packetType == PacketType.LOG) {
+        val content = contentPrint() ?: return null
+        logger.verbose(content.trim())
+        return null
+    } else {
+        append(direction.prettyString())
+        append("  ")
+        append(type)
+        appendLine()
+        val content = contentPrint() ?: return null
+        append(content.trim())
+        appendLine()
+    }
 }
 
 

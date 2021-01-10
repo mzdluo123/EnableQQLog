@@ -23,7 +23,7 @@ class Main : IXposedHookLoadPackage {
         // UniPackage().handleLoadPackage(lpparam)
         // ServiceHook().handleLoadPackage(lpparam)
         // MessageMicroHook().handleLoadPackage(lpparam)
-        // OicqRequestHook().handleLoadPackage(lpparam)
+        OicqRequestHook().handleLoadPackage(lpparam)
 
         NativeEncodeHook().handleLoadPackage(lpparam)
     }

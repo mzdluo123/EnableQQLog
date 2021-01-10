@@ -67,9 +67,9 @@ class NativeEncodeHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         val codecWrapper = lpparam.classLoader.loadClass("com.tencent.qphone.base.util.CodecWarpper")
 
-        LogUpload.log("codecWrapper=$codecWrapper")
+        // LogUpload.log("codecWrapper=$codecWrapper")
 
-        LogUpload.log(codecWrapper.methods.joinToString("\n"))
+        //  LogUpload.log(codecWrapper.methods.joinToString("\n"))
 
         // public static [B com.tencent.qphone.base.util.CodecWarpper.nativeEncodeRequest(int,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,byte[],int,int,java.lang.String,byte,byte,byte[],byte[],byte[],boolean)
         kotlin.runCatching {
@@ -127,12 +127,13 @@ class NativeEncodeHook : IXposedHookLoadPackage {
                 ByteArray::class.java, ByteArray::class.java, ByteArray::class.java, Boolean::class.java,
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
+                        /*
                         LogUpload.upload(
                             Direction.OUT,
                             "LOG",
                             "C: " + gson.toJson(param.args),
                             PacketType.LOG
-                        )
+                        )*/
                         LogUpload.upload(
                             Direction.OUT,
                             "Codec Send C",
@@ -183,12 +184,13 @@ class NativeEncodeHook : IXposedHookLoadPackage {
                             return
                         }
 
+                        /*
                         LogUpload.upload(
                             Direction.OUT,
                             "LOG",
                             "Parse A: $json",
                             PacketType.LOG
-                        )
+                        )*/
 
                         // Parse A: {"appId":-1,"appSeq":95706,"attributes":{},"errorMsg":"","extraData":{"mAllowFds":true,"mFdsKnown":true,"mHasFds":false,"mClassLoader":{"packages":{"com.android.org.conscrypt":{"implTitle":"Unknown","implVendor":"Unknown","implVersion":"0.0","name":"com.android.org.conscrypt","specTitle":"Unknown","specVendor":"Unknown","specVersion":"0.0"}},"proxyCache":{}},"mMap":{"version":1}},"flag":0,"fromVersion":1,"msfCommand":"unknown","msgCookie":[-1,78,-127,-28],"resultCode":1000,"serviceCmd":"VipCustom.GetCustomOnlineStatus","ssoSeq":-1,"uin":"xxxxxxxxxx","wupBuffer":[0,0,0,-125,0,0,0,127,16,3,44,60,66,84,77,62,-47,86,50,86,73,80,46,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,83,101,114,118,101,114,46,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,79,98,106,102,21,71,101,116,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,125,0,0,30,8,0,2,6,0,29,0,0,1,12,6,3,114,115,112,29,0,0,11,10,12,22,0,38,4,8,0,32,0,11,-116,-104,12,-88,12]}
 
@@ -202,7 +204,7 @@ class NativeEncodeHook : IXposedHookLoadPackage {
                 }
             )
         }.let {
-            LogUpload.log("Codec Encode Hook Parse A: $it")
+            LogUpload.log("Codec Recv A: $it")
         }
 
         // com.tencent.mobileqq.msf.core.MsfCore#addRespToQuque(java.lang.String, com.tencent.qphone.base.remote.ToServiceMsg, com.tencent.qphone.base.remote.FromServiceMsg)
@@ -219,7 +221,7 @@ class NativeEncodeHook : IXposedHookLoadPackage {
 
                         LogUpload.upload(
                             Direction.IN,
-                            "Codec",
+                            "Codec Recv E",
                             param.args[2],
                             PacketType.CODEC_ENCODE
                         )
@@ -227,7 +229,7 @@ class NativeEncodeHook : IXposedHookLoadPackage {
                 }
             )
         }.let {
-            LogUpload.log("Codec Encode Hook Parse E: $it")
+            LogUpload.log("Codec Recv E: $it")
         }
 
         /*

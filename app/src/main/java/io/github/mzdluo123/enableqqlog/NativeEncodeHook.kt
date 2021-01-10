@@ -5,6 +5,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
+
 /*
 com.tencent.qphone.base.util.CodecWarpper
 
@@ -166,5 +167,157 @@ class NativeEncodeHook : IXposedHookLoadPackage {
         }.let {
             LogUpload.log("Codec Encode Hook C: $it")
         }
+
+
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                codecWrapper,
+                "nativeParseData",
+                ByteArray::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val json = kotlin.runCatching {
+                            gson.toJson(param.result)
+                        }.getOrElse {
+                            pushLog("Failed to decode Parse A: ${it.stackTraceToString()}")
+                            return
+                        }
+
+                        LogUpload.upload(
+                            Direction.OUT,
+                            "LOG",
+                            "Parse A: $json",
+                            PacketType.LOG
+                        )
+
+                        // Parse A: {"appId":-1,"appSeq":95706,"attributes":{},"errorMsg":"","extraData":{"mAllowFds":true,"mFdsKnown":true,"mHasFds":false,"mClassLoader":{"packages":{"com.android.org.conscrypt":{"implTitle":"Unknown","implVendor":"Unknown","implVersion":"0.0","name":"com.android.org.conscrypt","specTitle":"Unknown","specVendor":"Unknown","specVersion":"0.0"}},"proxyCache":{}},"mMap":{"version":1}},"flag":0,"fromVersion":1,"msfCommand":"unknown","msgCookie":[-1,78,-127,-28],"resultCode":1000,"serviceCmd":"VipCustom.GetCustomOnlineStatus","ssoSeq":-1,"uin":"xxxxxxxxxx","wupBuffer":[0,0,0,-125,0,0,0,127,16,3,44,60,66,84,77,62,-47,86,50,86,73,80,46,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,83,101,114,118,101,114,46,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,79,98,106,102,21,71,101,116,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,125,0,0,30,8,0,2,6,0,29,0,0,1,12,6,3,114,115,112,29,0,0,11,10,12,22,0,38,4,8,0,32,0,11,-116,-104,12,-88,12]}
+
+                        LogUpload.upload(
+                            Direction.IN,
+                            "Codec",
+                            json,
+                            PacketType.CODEC_ENCODE
+                        )
+                    }
+                }
+            )
+        }.let {
+            LogUpload.log("Codec Encode Hook Parse A: $it")
+        }
+
+        // com.tencent.mobileqq.msf.core.MsfCore#addRespToQuque(java.lang.String, com.tencent.qphone.base.remote.ToServiceMsg, com.tencent.qphone.base.remote.FromServiceMsg)
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                lpparam.classLoader.loadClass("com.tencent.mobileqq.msf.core.MsfCore"),
+                "addRespToQuque",
+                String::class.java,
+                "com.tencent.qphone.base.remote.ToServiceMsg",
+                "com.tencent.qphone.base.remote.FromServiceMsg",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        // Parse A: {"appId":-1,"appSeq":95706,"attributes":{},"errorMsg":"","extraData":{"mAllowFds":true,"mFdsKnown":true,"mHasFds":false,"mClassLoader":{"packages":{"com.android.org.conscrypt":{"implTitle":"Unknown","implVendor":"Unknown","implVersion":"0.0","name":"com.android.org.conscrypt","specTitle":"Unknown","specVendor":"Unknown","specVersion":"0.0"}},"proxyCache":{}},"mMap":{"version":1}},"flag":0,"fromVersion":1,"msfCommand":"unknown","msgCookie":[-1,78,-127,-28],"resultCode":1000,"serviceCmd":"VipCustom.GetCustomOnlineStatus","ssoSeq":-1,"uin":"xxxxxxxxxx","wupBuffer":[0,0,0,-125,0,0,0,127,16,3,44,60,66,84,77,62,-47,86,50,86,73,80,46,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,83,101,114,118,101,114,46,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,79,98,106,102,21,71,101,116,67,117,115,116,111,109,79,110,108,105,110,101,83,116,97,116,117,115,125,0,0,30,8,0,2,6,0,29,0,0,1,12,6,3,114,115,112,29,0,0,11,10,12,22,0,38,4,8,0,32,0,11,-116,-104,12,-88,12]}
+
+                        LogUpload.upload(
+                            Direction.IN,
+                            "Codec",
+                            param.args[2],
+                            PacketType.CODEC_ENCODE
+                        )
+                    }
+                }
+            )
+        }.let {
+            LogUpload.log("Codec Encode Hook Parse E: $it")
+        }
+
+        /*
+        val fromServiceMsg = lpparam.classLoader.loadClass("com.tencent.qphone.base.remote.FromServiceMsg")
+        val nativeParseData = codecWrapper.getMethod("nativeParseData", ByteArray::class.java)
+
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                codecWrapper,
+                "nativeOnReceData",
+                ByteArray::class.java,
+                Int::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        LogUpload.upload(
+                            Direction.OUT,
+                            "LOG",
+                            "Parse B: " + gson.toJson(param.args),
+                            PacketType.LOG
+                        )
+
+                        val data = param.args[0] as ByteArray
+                        if (data[0] == 0.toByte() && data[1] == 0.toByte()) {
+                            pushLog(kotlin.runCatching {
+                                nativeParseData.invoke(param.thisObject, data)
+                            }.toString())
+                        }
+                        LogUpload.upload(
+                            Direction.IN,
+                            "Codec",
+                            data,
+                            PacketType.CODEC_ENCODE
+                        )
+                    }
+                }
+            )
+        }.let {
+            LogUpload.log("Codec Encode Hook Parse B: $it")
+        }
+*/
+        /*
+        val codecWrapperImpl = kotlin.runCatching { lpparam.classLoader.loadClass("com.tencent.mobileqq.msf.core.ag\$a") }.getOrNull()
+
+        pushLog("codecWrapperImpl=$codecWrapperImpl")
+        if (codecWrapperImpl == null) return
+
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                codecWrapperImpl,
+                "onResponse",
+                Int::class.java,
+                Any::class.java,
+                Int::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        LogUpload.upload(
+                            Direction.OUT,
+                            "LOG",
+                            "Parse C: " + gson.toJson(param.args),
+                            PacketType.LOG
+                        )
+                    }
+                }
+            )
+        }.let {
+            LogUpload.log("Codec Encode Hook Parse C: $it")
+        }
+
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                codecWrapperImpl,
+                "onResponse",
+                Int::class.java,
+                Any::class.java,
+                Int::class.java,
+                ByteArray::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        LogUpload.upload(
+                            Direction.OUT,
+                            "LOG",
+                            "Parse D: " + gson.toJson(param.args),
+                            PacketType.LOG
+                        )
+                    }
+                }
+            )
+        }.let {
+            LogUpload.log("Codec Encode Hook Parse D: $it")
+        }
+*/
     }
 }

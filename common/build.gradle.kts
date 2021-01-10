@@ -11,4 +11,5 @@ java {
 
 dependencies {
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+    api("com.google.code.gson:gson:2.8.6")
 }

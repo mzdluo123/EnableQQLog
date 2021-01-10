@@ -210,9 +210,18 @@ private fun DataPack.contentPrint(): String? = buildString {
             appendLine(content)
         }
         PacketType.CODEC_ENCODE -> {
-            val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
-            appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
-            appendLine(packet.wupBuffer.toUHexString())
+            when (direction) {
+                Direction.IN -> {
+                    val packet = Gson().fromJson(contentJson, FromServiceMsg::class.java)
+                    appendLine(Color.LIGHT_GREEN + "cmd=${packet.serviceCmd}" + Color.RESET)
+                    appendLine(packet.wupBuffer.toUHexString())
+                }
+                Direction.OUT -> {
+                    val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
+                    appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
+                    appendLine(packet.wupBuffer.toUHexString())
+                }
+            }
         }
         else -> append(contentJson)
     }

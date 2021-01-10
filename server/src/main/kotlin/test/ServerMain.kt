@@ -101,7 +101,7 @@ private fun DataPack.prettyPrint(): String? = buildString {
     append(type)
     appendLine()
     val content = contentPrint() ?: return null
-    append(content)
+    append(content.trim())
     appendLine()
 }
 
@@ -213,11 +213,13 @@ private fun DataPack.contentPrint(): String? = buildString {
             when (direction) {
                 Direction.IN -> {
                     val packet = Gson().fromJson(contentJson, FromServiceMsg::class.java)
+                    if (isIgnored(packet.serviceCmd)) return null
                     appendLine(Color.LIGHT_GREEN + "cmd=${packet.serviceCmd}" + Color.RESET)
                     appendLine(packet.wupBuffer.toUHexString())
                 }
                 Direction.OUT -> {
                     val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
+                    if (isIgnored(packet.commandId)) return null
                     appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
                     appendLine(packet.wupBuffer.toUHexString())
                 }

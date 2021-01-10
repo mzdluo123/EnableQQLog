@@ -7,17 +7,21 @@ import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import net.mamoe.mirai.utils.*
 import kotlin.concurrent.thread
 
-object UniOicqSvcServer {
+object UniOicqSvcCodecServer {
     @JvmStatic
     fun main(args: Array<String>) {
         thread { UniServer.main(args) }
         thread { OicqServer.main(args) }
         thread { SvcServer.main(args) }
+        thread { CodecEncodeServer.main(args) }
     }
 }
 
@@ -56,6 +60,13 @@ object LogServer {
     }
 }
 
+object CodecEncodeServer {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        startServer(20815)
+    }
+}
+
 private fun startServer(port: Int) {
     embeddedServer(Netty, environment = applicationEngineEnvironment {
         this.connector {
@@ -66,14 +77,20 @@ private fun startServer(port: Int) {
     }).start(true)
 }
 
+private val processQueue = Channel<DataPack>(Channel.BUFFERED)
+private val init by lazy {
+    GlobalScope.launch {
+        processQueue.receiveAsFlow().collect { dataPack ->
+            dataPack.prettyPrint()?.let(::println)
+        }
+    }
+}
 
-private val lock = Mutex()
 private fun Application.module() {
+    init
     routing {
         post("/") {
-            lock.withLock {
-                call.receivePack().prettyPrint()?.let(::println)
-            }
+            processQueue.send(call.receivePack())
         }
     }
 }
@@ -120,7 +137,11 @@ internal val IgnoredPackets = arrayOf(
     "JsApiSvr.webview.whitelist",
     "ConfigServantObj",
     "cmd_getServerConfig",
-    "cmd_RegisterMsfService"
+    "cmd_RegisterMsfService",
+    "CameraModuleSvc",
+    "Pay",
+    "Game",
+    "TianShu.GetAds"
 )
 
 internal val IgnoredPacketFilters: Array<(String) -> Boolean> = arrayOf(
@@ -187,6 +208,11 @@ private fun DataPack.contentPrint(): String? = buildString {
         PacketType.LOG -> {
             val content = Gson().fromJson(contentJson, String::class.java)
             appendLine(content)
+        }
+        PacketType.CODEC_ENCODE -> {
+            val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
+            appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
+            appendLine(packet.wupBuffer.toUHexString())
         }
         else -> append(contentJson)
     }

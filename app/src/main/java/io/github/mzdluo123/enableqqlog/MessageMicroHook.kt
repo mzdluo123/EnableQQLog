@@ -11,8 +11,6 @@ class MessageMicroHook : IXposedHookLoadPackage {
 
         val dump = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
-                val content = gson.toJson(param.thisObject)
-                l("MsgMicro (${param.thisObject.javaClass.name}) $content")
                 LogUpload.upload(
                     Direction.IN,
                     "MsgMicro (${param.thisObject.javaClass.name})",

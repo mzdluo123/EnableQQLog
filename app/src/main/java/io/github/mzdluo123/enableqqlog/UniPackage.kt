@@ -16,8 +16,6 @@ class UniPackage : IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod(uniClass, "encode", object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val data = pack.get(param.thisObject)
-                val json = gson.toJson(data)
-                l("Uni-> $json")
                 LogUpload.upload(Direction.OUT, "Uni", data, PacketType.UNI)
 
             }
@@ -26,8 +24,6 @@ class UniPackage : IXposedHookLoadPackage {
         val decodeHook = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val data = pack.get(param.thisObject)
-                val json = gson.toJson(data)
-                l("Uni<- $json")
                 LogUpload.upload(Direction.IN, "Uni", data, PacketType.UNI)
             }
         }

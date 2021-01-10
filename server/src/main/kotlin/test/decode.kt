@@ -84,7 +84,7 @@ internal val IgnoredPacketFilters: Array<(String) -> Boolean> = arrayOf(
     { it.contains("qzone", ignoreCase = true) }
 )
 
-private fun isIgnored(s: String?): Boolean = s == null || IgnoredPackets.contains(s) || IgnoredPacketFilters.any { it.invoke(s) }
+fun isIgnored(s: String?): Boolean = s == null || IgnoredPackets.contains(s) || IgnoredPacketFilters.any { it.invoke(s) }
 
 private fun DataPack.contentPrint(): String? = buildString {
     when (packetType) {
@@ -145,19 +145,20 @@ private fun DataPack.contentPrint(): String? = buildString {
             val content = Gson().fromJson(contentJson, String::class.java)
             appendLine(content)
         }
+
         PacketType.CODEC_ENCODE -> {
             when (direction) {
                 Direction.IN -> {
                     val packet = Gson().fromJson(contentJson, FromServiceMsg::class.java)
                     if (isIgnored(packet.serviceCmd)) return null
                     appendLine(Color.LIGHT_GREEN + "cmd=${packet.serviceCmd}" + Color.RESET)
-                    appendLine(packet.wupBuffer.toUHexString())
+                    appendLine(smartDecodeWupBuffer(packet.wupBuffer) ?: return null)
                 }
                 Direction.OUT -> {
                     val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
                     if (isIgnored(packet.commandId)) return null
                     appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
-                    appendLine(packet.wupBuffer.toUHexString())
+                    appendLine(smartDecodeWupBuffer(packet.wupBuffer) ?: return null)
                 }
             }
         }

@@ -66,34 +66,6 @@ class SvcPacket(
     val wupBuffer: ByteArray,
 )
 
-
-@Suppress("SpellCheckingInspection")
-internal val IgnoredPackets = arrayOf(
-    "",
-    "socketnetflow",
-    "CliLogSvc.UploadReq",
-    "QQService.CliLogSvc.MainServantObj",
-    "QQService.ConfigPushSvc.MainServant",
-    "KQQ.ConfigService.ConfigServantObj",
-    "App_reportRDM",
-    "RedTouchSvc.ClientReport",
-    "MobileReport.UserActionReport",
-    "JsApiSvr.webview.whitelist",
-    "ConfigServantObj",
-    "cmd_getServerConfig",
-    "cmd_RegisterMsfService",
-    "CameraModuleSvc",
-    "Pay",
-    "Game",
-    "TianShu.GetAds"
-)
-
-internal val IgnoredPacketFilters: Array<(String) -> Boolean> = arrayOf(
-    { it.contains("qzone", ignoreCase = true) }
-)
-
-fun isIgnored(s: String?): Boolean = s == null || IgnoredPackets.contains(s) || IgnoredPacketFilters.any { it.invoke(s) }
-
 private fun DataPack.contentPrint(): String? = buildString {
     when (packetType) {
         PacketType.UNI -> {
@@ -120,7 +92,7 @@ private fun DataPack.contentPrint(): String? = buildString {
             appendLine(Color.LIGHT_GREEN + data.request.toString() + Color.RESET)
             appendLine(data.data.toUHexString())
             appendLine()
-            appendLine(data.data.toReadPacket().withUse { _readTLVMap() }.smartToString())
+            appendLine(data.data.toReadPacket().withUse { kotlin.runCatching { _readTLVMap().smartToString() }.getOrElse { "Failed to read TLV" } })
         }
 
         PacketType.SVC -> {

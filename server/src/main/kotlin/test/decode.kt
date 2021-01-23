@@ -1,3 +1,5 @@
+@file:Suppress("EXPERIMENTAL_API_USAGE")
+
 package test
 
 import com.google.gson.Gson
@@ -10,6 +12,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.io.core.discardExact
+import kotlinx.io.core.readUByte
 import net.mamoe.mirai.utils.*
 
 
@@ -92,7 +96,29 @@ private fun DataPack.contentPrint(): String? = buildString {
             appendLine(Color.LIGHT_GREEN + data.request.toString() + Color.RESET)
             appendLine(data.data.toUHexString())
             appendLine()
-            appendLine(data.data.toReadPacket().withUse { kotlin.runCatching { _readTLVMap().smartToString() }.getOrElse { "Failed to read TLV" } })
+            when (direction) {
+                Direction.IN -> {
+
+                    // 00 04 // subcommand
+                    //00 00
+                    //02 // count
+                    //
+                    //01 04 00 24 41 6C 54 74 4D 70 6B 38 56 33 37 4A 41 66 35 38 76 78 62 64 2F 6C 31 69 2F 34 63 55 71 70 38 71 2B 67 3D 3D 01 83 00 08 A5 1A 6D 03 7F 59 69 F9
+
+                    appendLine(data.data.toReadPacket().withUse {
+                        kotlin.runCatching {
+                            discardExact(2)
+                            val retCode = readUByte()
+                            appendLine("returnCode=${retCode.toInt()} (0x${retCode.toUHexString()})")
+                            discardExact(2)
+                            _readTLVMap().smartToString()
+                        }.getOrElse { "Failed to read TLV" }
+                    })
+                }
+                Direction.OUT -> {
+                    appendLine(data.data.toReadPacket().withUse { kotlin.runCatching { _readTLVMap().smartToString() }.getOrElse { "Failed to read TLV" } })
+                }
+            }
         }
 
         PacketType.SVC -> {

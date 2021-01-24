@@ -157,19 +157,23 @@ private fun DataPack.contentPrint(): String? = buildString {
         }
 
         PacketType.CODEC_ENCODE -> {
-            when (direction) {
-                Direction.IN -> {
-                    val packet = Gson().fromJson(contentJson, FromServiceMsg::class.java)
-                    if (isIgnored(packet.serviceCmd)) return null
-                    appendLine(Color.LIGHT_GREEN + "cmd=${packet.serviceCmd}" + Color.RESET)
-                    appendLine(smartDecodeWupBuffer(packet.wupBuffer) ?: return null)
+            kotlin.runCatching {
+                when (direction) {
+                    Direction.IN -> {
+                        val packet = Gson().fromJson(contentJson, FromServiceMsg::class.java)
+                        if (isIgnored(packet.serviceCmd)) return null
+                        appendLine(Color.LIGHT_GREEN + "cmd=${packet.serviceCmd}" + Color.RESET)
+                        appendLine(smartDecodeWupBuffer(packet.wupBuffer) ?: return null)
+                    }
+                    Direction.OUT -> {
+                        val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
+                        if (isIgnored(packet.commandId)) return null
+                        appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
+                        appendLine(smartDecodeWupBuffer(packet.wupBuffer) ?: return null)
+                    }
                 }
-                Direction.OUT -> {
-                    val packet = Gson().fromJson(contentJson, CodecNativeEncodePacket::class.java)
-                    if (isIgnored(packet.commandId)) return null
-                    appendLine(Color.LIGHT_GREEN + "cmd=${packet.commandId}" + Color.RESET)
-                    appendLine(smartDecodeWupBuffer(packet.wupBuffer) ?: return null)
-                }
+            }.onFailure {
+                appendLine(Color.RED + "Failed to parse: $contentJson")
             }
         }
         else -> append(contentJson)

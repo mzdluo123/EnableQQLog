@@ -24,10 +24,11 @@ enum class PacketType {
     LOG,
 }
 
-data class OicqRequest(
+class OicqRequest(
     val cmd: Int,
     val subCmd: Int,
     val svcCmd: String, // serviceCommandName
+    val sessionKey: ByteArray? = null,
 ) {
     override fun toString(): String {
         return "OicqRequest(cmd=0x${cmd.toShort().toUHexString("")}, subCmd=$subCmd, svcCmd='$svcCmd')"

@@ -111,12 +111,16 @@ private fun DataPack.contentPrint(): String? = buildString {
                             val retCode = readUByte()
                             appendLine("returnCode=${retCode.toInt()} (0x${retCode.toUHexString()})")
                             discardExact(2)
-                            _readTLVMap().smartToString()
-                        }.getOrElse { "Failed to read TLV" }
+                            _readTLVMap(tagSize = 2).smartToString()
+                        }.getOrElse { "Failed to read TLV: $it" }
                     })
                 }
                 Direction.OUT -> {
-                    appendLine(data.data.toReadPacket().withUse { kotlin.runCatching { _readTLVMap().smartToString() }.getOrElse { "Failed to read TLV" } })
+                    appendLine(data.data.toReadPacket().withUse {
+                        kotlin.runCatching {
+                            _readTLVMap(tagSize = 2).smartToString()
+                        }.getOrElse { "Failed to read TLV: $it" }
+                    })
                 }
             }
         }

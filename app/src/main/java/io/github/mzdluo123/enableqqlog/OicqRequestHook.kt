@@ -39,7 +39,7 @@ class OicqRequestHook : IXposedHookLoadPackage {
 
                             val data = (param.args[0] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
                             LogUpload.upload(
-                                Direction.OUT, "Oicq", OicqHookOnMakePacket(
+                                Direction.OUT, "Oicq Send A", OicqHookOnMakePacket(
                                     OicqRequest(
                                         cmd = getIntField(obj, "t"),
                                         subCmd = getIntField(obj, "u"),
@@ -76,7 +76,82 @@ class OicqRequestHook : IXposedHookLoadPackage {
 
                             val data = (param.args[1] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
                             LogUpload.upload(
-                                Direction.OUT, "Oicq", OicqHookOnMakePacket(
+                                Direction.OUT, "Oicq Send B", OicqHookOnMakePacket(
+                                    OicqRequest(
+                                        cmd = getIntField(obj, "t"),
+                                        subCmd = getIntField(obj, "u"),
+                                        svcCmd = getObjectField(obj, "v") as String,
+                                        sessionKey = getObjectField(obj, "c") as ByteArray
+                                    ), data
+                                ), PacketType.OICQ
+                            )
+                        }.onFailure {
+                            pushLog(it.stackTraceToString())
+                        }
+                    }
+                }
+            )
+            //      }
+        }.let {
+            pushLog("Oicq Send B: $it")
+        }
+
+        // a (byte[], byte[], byte[], byte[]) byte[]
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                clazz,
+
+                "a",
+                ByteArray::class.java,
+                ByteArray::class.java,
+                ByteArray::class.java,
+                ByteArray::class.java,
+
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        pushLog("Oicq Send C: $param")
+                        kotlin.runCatching {
+                            val obj = param.thisObject
+
+                            val data = (param.args[0] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
+                            LogUpload.upload(
+                                Direction.OUT, "Oicq Send C", OicqHookOnMakePacket(
+                                    OicqRequest(
+                                        cmd = getIntField(obj, "t"),
+                                        subCmd = getIntField(obj, "u"),
+                                        svcCmd = getObjectField(obj, "v") as String,
+                                    ), data
+                                ), PacketType.OICQ
+                            )
+                        }.onFailure {
+                            pushLog(it.stackTraceToString())
+                        }
+                    }
+                }
+            )
+            //      }
+        }.let {
+            pushLog("Oicq Send B: $it")
+        }
+
+        // a (byte[], byte[], byte[], byte[]) byte[]
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                clazz,
+
+                "a",
+                ByteArray::class.java,
+                ByteArray::class.java,
+
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        pushLog("Oicq Send D: $param")
+                        kotlin.runCatching {
+                            val obj = param.thisObject
+
+                            val data = (param.args[0] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
+                            LogUpload.upload(
+                                Direction.OUT, "Oicq Send D", OicqHookOnMakePacket(
                                     OicqRequest(
                                         cmd = getIntField(obj, "t"),
                                         subCmd = getIntField(obj, "u"),
@@ -176,7 +251,7 @@ public static [B oicq.wlogin_sdk.request.oicq_request.b(byte[],byte[])
 
                             val data = (param.args[0] as ByteArray).sliceArray(offset until (offset + length))
                             LogUpload.upload(
-                                Direction.IN, "Oicq", OicqHookOnMakePacket(
+                                Direction.IN, "Oicq Recv A", OicqHookOnMakePacket(
                                     OicqRequest(
                                         cmd = getIntField(obj, "t"),
                                         subCmd = getIntField(obj, "u"),

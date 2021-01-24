@@ -174,6 +174,7 @@ private fun DataPack.contentPrint(): String? = buildString {
                 }
             }.onFailure {
                 appendLine(Color.RED + "Failed to parse: $contentJson")
+                appendLine(it.stackTraceToString())
             }
         }
         else -> append(contentJson)

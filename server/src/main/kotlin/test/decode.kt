@@ -94,7 +94,12 @@ private fun DataPack.contentPrint(): String? = buildString {
             if (isIgnored(data.request.svcCmd)) return null
 
             appendLine(Color.LIGHT_GREEN + data.request.toString() + Color.RESET)
-            appendLine(data.data.toUHexString())
+            val tlvData = if (type == "Oicq Send E") {
+                appendLine("tlv count=${data.data.toUInt().toUShort()}")
+                data.data.drop(4).toByteArray() // subCmd and tlvCount
+            } else data.data
+
+            appendLine(tlvData.toUHexString())
             appendLine()
             when (direction) {
                 Direction.IN -> {
@@ -105,7 +110,7 @@ private fun DataPack.contentPrint(): String? = buildString {
                     //
                     //01 04 00 24 41 6C 54 74 4D 70 6B 38 56 33 37 4A 41 66 35 38 76 78 62 64 2F 6C 31 69 2F 34 63 55 71 70 38 71 2B 67 3D 3D 01 83 00 08 A5 1A 6D 03 7F 59 69 F9
 
-                    appendLine(data.data.toReadPacket().withUse {
+                    appendLine(tlvData.read {
                         kotlin.runCatching {
                             discardExact(2)
                             val retCode = readUByte()
@@ -116,7 +121,8 @@ private fun DataPack.contentPrint(): String? = buildString {
                     })
                 }
                 Direction.OUT -> {
-                    appendLine(data.data.toReadPacket().withUse {
+
+                    appendLine(tlvData.read {
                         kotlin.runCatching {
                             _readTLVMap(tagSize = 2).smartToString()
                         }.getOrElse { "Failed to read TLV: $it" }

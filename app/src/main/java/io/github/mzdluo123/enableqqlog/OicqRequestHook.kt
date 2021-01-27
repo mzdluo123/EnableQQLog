@@ -131,7 +131,43 @@ class OicqRequestHook : IXposedHookLoadPackage {
             )
             //      }
         }.let {
-            pushLog("Oicq Send B: $it")
+            pushLog("Oicq Send C: $it")
+        }
+
+        // a (byte[], byte[]) byte[]
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                clazz,
+
+                "a",
+                ByteArray::class.java,
+                ByteArray::class.java,
+
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        pushLog("Oicq Send D: $param")
+                        kotlin.runCatching {
+                            val obj = param.thisObject
+
+                            val data = (param.args[0] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
+                            LogUpload.upload(
+                                Direction.OUT, "Oicq Send D", OicqHookOnMakePacket(
+                                    OicqRequest(
+                                        cmd = getIntField(obj, "t"),
+                                        subCmd = getIntField(obj, "u"),
+                                        svcCmd = getObjectField(obj, "v") as String,
+                                    ), data
+                                ), PacketType.OICQ
+                            )
+                        }.onFailure {
+                            pushLog(it.stackTraceToString())
+                        }
+                    }
+                }
+            )
+            //      }
+        }.let {
+            pushLog("Oicq Send D: $it")
         }
 
         // a (byte[], byte[], byte[], byte[]) byte[]
@@ -167,7 +203,47 @@ class OicqRequestHook : IXposedHookLoadPackage {
             )
             //      }
         }.let {
-            pushLog("Oicq Send B: $it")
+            pushLog("Oicq Send D: $it")
+        }
+
+
+        // 8.5.5
+        //    protected byte[] a(byte[] var1, oicq_request$EncryptionMethod var2, byte[] var3, byte[] var4) {
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(
+                clazz,
+
+                "a",
+                ByteArray::class.java,
+                "oicq.wlogin_sdk.request.oicq_request\$EncryptionMethod",
+                ByteArray::class.java,
+                ByteArray::class.java,
+
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        pushLog("Oicq Send E: $param")
+                        kotlin.runCatching {
+                            val obj = param.thisObject
+
+                            val data = (param.args[0] as ByteArray).dropLastWhile { it == 0.toByte() }.toByteArray()
+                            LogUpload.upload(
+                                Direction.OUT, "Oicq Send E", OicqHookOnMakePacket(
+                                    OicqRequest(
+                                        cmd = getIntField(obj, "t"),
+                                        subCmd = getIntField(obj, "u"),
+                                        svcCmd = getObjectField(obj, "v") as String,
+                                    ), data
+                                ), PacketType.OICQ
+                            )
+                        }.onFailure {
+                            pushLog(it.stackTraceToString())
+                        }
+                    }
+                }
+            )
+            //      }
+        }.let {
+            pushLog("Oicq Send E: $it")
         }
 
         /*

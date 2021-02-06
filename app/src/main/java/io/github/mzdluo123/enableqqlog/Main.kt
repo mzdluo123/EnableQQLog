@@ -26,5 +26,6 @@ class Main : IXposedHookLoadPackage {
         OicqRequestHook().handleLoadPackage(lpparam)
 
         NativeEncodeHook().handleLoadPackage(lpparam)
+        HighwayHook().handleLoadPackage(lpparam)
     }
 }

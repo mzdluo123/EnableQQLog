@@ -5,7 +5,7 @@ plugins {
 }
 
 
-val ktorVersion = "1.4.3"
+val ktorVersion = "1.5.0"
 
 dependencies {
     api(project(":common"))
@@ -29,12 +29,18 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java) {
     }
 }
 
-val miraiVersion = "2.0-M2-dev-8"
+val miraiVersion = "2.3.2"
 
 dependencies {
 
 
-    api("net.mamoe:mirai-core-api:$miraiVersion")
-    api("net.mamoe:mirai-core-utils:$miraiVersion")
-    api("net.mamoe:mirai-core:$miraiVersion")
+    //  api("net.mamoe:mirai-core-api:$miraiVersion") {
+    //      exclude("com.squareup.okhttp3:okhttp:4.6.0")
+    //  }
+    api("net.mamoe:mirai-core-utils:$miraiVersion") {
+        exclude("com.squareup.okhttp3", "okhttp")
+    }
+    api("net.mamoe:mirai-core:$miraiVersion") {
+        exclude("com.squareup.okhttp3", "okhttp")
+    }
 }
